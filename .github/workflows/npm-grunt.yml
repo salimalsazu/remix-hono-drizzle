@@ -20,3 +20,9 @@ jobs:
 
       - name: Build Docker Image Server
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-remix-app-server:latest ./server
+
+      - name : Push Docker Image Client
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-remix-app:latest
+
+      - name : Push Docker Image Server
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-remix-app-server:latest
