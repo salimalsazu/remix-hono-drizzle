@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-       uses: actions/checkout@v4
+      - name: Checkout Code # Fixed indentation and spacing after the "-"
+        uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
