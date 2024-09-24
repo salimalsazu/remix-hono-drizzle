@@ -1,0 +1,45 @@
+name: Deploy Docker Image
+
+on:
+  workflow_run:
+    workflows: ["Publish Docker Image"]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+
+    steps:
+      - name: Stop the old container
+        run: docker stop remix-client || true
+
+      - name: Remove the old container
+        run: docker rm remix-client || true
+
+      - name : Delete the old image
+       run: docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest || true   
+
+      - name: Pull the latest image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest
+
+      - name: Run the new container
+        run: docker compose up -d -p 4000:4000 --name remix-client ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest
+
+      - name: Stop the old container
+        run: docker stop remix-server || true
+
+      - name: Remove the old container
+        run: docker rm remix-server || true
+
+      - name : Delete the old image
+        run: docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest || true
+
+
+      - name: Pull the latest image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest
+
+      - name: Run the new container
+        run: docker compose up -d -p 5000:5000 --name remix-server ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest
+
