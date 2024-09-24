@@ -2,42 +2,40 @@ name: Deploy Docker Image
 
 on:
   workflow_run:
-    workflows: ["Publish Docker Image"]
+    workflows: ["Publish Docker Image"] # Ensure this matches exactly with the docker_build.yml's 'name'
     types: [completed]
 
 jobs:
   build:
     runs-on: self-hosted
 
-
     steps:
-      - name: Stop the old container
+      - name: Stop the old client container
         run: docker stop remix-client || true
 
-      - name: Remove the old container
+      - name: Remove the old client container
         run: docker rm remix-client || true
 
-      - name : Delete the old image
-       run: docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest || true   
+      - name: Delete the old client image
+        run: docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest || true
 
-      - name: Pull the latest image
+      - name: Pull the latest client image
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest
 
-      - name: Run the new container
-        run: docker compose up -d -p 4000:4000 --name remix-client ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest
+      - name: Run the new client container
+        run: docker run -d -p 4000:4000 --name remix-client ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:client-latest
 
-      - name: Stop the old container
+      - name: Stop the old server container
         run: docker stop remix-server || true
 
-      - name: Remove the old container
+      - name: Remove the old server container
         run: docker rm remix-server || true
 
-      - name : Delete the old image
+      - name: Delete the old server image
         run: docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest || true
 
-
-      - name: Pull the latest image
+      - name: Pull the latest server image
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest
 
-      - name: Run the new container
-        run: docker compose up -d -p 5000:5000 --name remix-server ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest
+      - name: Run the new server container
+        run: docker run -d -p 5000:5000 --name remix-server ${{ secrets.DOCKERHUB_USERNAME }}/remix-hono-drizzle:server-latest
