@@ -1,0 +1,37 @@
+model Account {
+  accountId         String        @id @default(cuid())
+  accountName       String
+  subGroupId        String?
+  subGroup          SubGroup?     @relation(fields: [subGroupId], references: [subGroupId])
+  closingBalance    Int           @default(0)
+  requisition       Requisition[]
+  createdAt         DateTime      @default(now()) @db.Timestamptz(0)
+  updatedAt         DateTime      @updatedAt @db.Timestamptz(0)
+  transactionDebit  Transaction[] @relation("DebitAccount")
+  transactionCredit Transaction[] @relation("CreditAccount")
+}
+
+model SubGroup {
+  subGroupId          String    @id @default(cuid())
+  subGroupName        String
+  subGroupDescription String
+  groupId             String
+  group               Group     @relation(fields: [groupId], references: [groupId])
+  createdAt           DateTime  @default(now()) @db.Timestamptz(0)
+  updatedAt           DateTime  @updatedAt @db.Timestamptz(0)
+  account             Account[]
+}
+
+model Group {
+  groupId   String           @id @default(cuid())
+  groupName String
+  tbType    TrailBalanceType
+  createdAt DateTime         @default(now()) @db.Timestamptz(0)
+  updatedAt DateTime         @updatedAt @db.Timestamptz(0)
+  subGroup  SubGroup[]
+}
+
+enum TrailBalanceType {
+  DEBIT
+  CREDIT
+}

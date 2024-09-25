@@ -1,41 +1,56 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import routes from "./app/routes";
+import cors from 'cors';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import httpStatus from 'http-status';
+import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import routes from './app/routes';
 
+import cookieParser from 'cookie-parser';
 
-const app = new Hono();
+const app: Application = express();
 
-// CORS middleware in Hono
 app.use(
-  "*",
   cors({
-    origin: ["http://localhost:3001", "http://localhost:3000"],
+    // origin: 'http://85.31.225.190:3100',
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'http://157.173.108.109:3000',
+      'http://157.173.108.109:3100',
+      'http://192.168.0.109:3000',
+      'http://192.168.0.102:3000',
+      '*',
+    ],
     credentials: true,
+    // methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   })
 );
+app.use(cookieParser());
 
+//parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Global error handler (use try-catch inside handlers)
-// app.onError(globalErrorHandler);
+app.use(express.static('data/uploads'));
 
-// API routes
-app.route("/api/v1", routes);
+app.use('/api/v1', routes);
 
-// Handle not found
-app.notFound((c) => {
-  return c.json(
-    {
-      success: false,
-      message: "Not Found",
-      errorMessages: [
-        {
-          path: c.req.path,
-          message: "API Not Found",
-        },
-      ],
-    },
-    404
-  );
+//global error handler
+app.use(globalErrorHandler);
+
+//handle not found
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(httpStatus.NOT_FOUND).json({
+    success: false,
+    message: 'Not Found',
+    errorMessages: [
+      {
+        path: req.originalUrl,
+        message: 'API Not Found',
+      },
+    ],
+  });
+  next();
 });
 
 export default app;

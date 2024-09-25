@@ -1,41 +1,59 @@
 version: "3.8"
-
 services:
-  client:
-    build:
-      context: ./client/my-remix-app
-      dockerfile: Dockerfile
-    container_name: remix-client
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
     ports:
-      - "3000:3000"
-    depends_on:
-      - server
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: salimalsazu
+      POSTGRES_DB: erp
+    volumes:
+      - type: bind
+        # source: C:\data\db
+        source: /root/volumes/erp/db
+        target: /var/lib/postgresql/data
+    restart: unless-stopped
 
   server:
+    stdin_open: true
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: remix-server
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydatabase
-    ports:
-      - "4000:4000"
+    image: server:latest
+    container_name: server-container
     depends_on:
-      - db
-    volumes:
-      - ./server/src:/app/src
-      - ./server/migrations:/app/migrations
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mydatabase
+      - postgres
+    ports:
+      - 7000:7000
     volumes:
       - type: bind
-        source: C:\data\db
-        target: /var/lib/postgresql/data
+        # source: C:\data\data
+        source: /root/volumes/erp/data
+        target: /app/uploads
+
+  client:
+    stdin_open: true
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: client:latest
+    container_name: client-container
+    depends_on:
+      - server
     ports:
-      - "5433:5432"
+      - 3000:3000
+
+  backup-service:
+    build:
+      context: ./backup-service
+    container_name: backup-service
+    volumes:
+      - type: bind
+        # source: C:/data/backup
+        source: /var/backups
+        target: /backup
+    depends_on:
+      - postgres
+    restart: unless-stopped

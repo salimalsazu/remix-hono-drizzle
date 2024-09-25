@@ -1,0 +1,34 @@
+model Profile {
+  profileId          String    @id @default(uuid())
+  firstName          String
+  lastName           String
+  gender             Gender    @default(male)
+  jobId              String?
+  jobTitle           String?
+  joiningDate        DateTime?
+  experience         String?
+  salary             Int?   @default(0)
+  address            String?
+  nationalId         String?
+  totalSalary        Int?      @default(0)
+  tdsOnSalary        Int?      @default(0)
+  birthCertificateNo String?
+  dateOfBirth        DateTime  @default(now())
+  bankAccountNo      String?
+  profileImage       String?
+  mobileNo           String?
+  mobileBillingLimit Int?
+  email              String?
+  role               UserRoles @default(USER)
+  isMeal             isMeal    @default(Yes)
+  createdAt          DateTime  @default(now()) @db.Timestamptz(0)
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(0)
+  user               User?
+
+  @@map("profiles")
+}
+
+enum Gender {
+  male
+  female
+}

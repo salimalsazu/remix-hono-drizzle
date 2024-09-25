@@ -1,0 +1,142 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Foods {
+  foodExpId    String     @id @default(uuid())
+  totalCost    Int
+  foodExpDate  DateTime   @db.Timestamptz(0)
+  totalMeal    Int
+  employeeCost Int
+  mealRate     Int
+  createdAt    DateTime   @default(now()) @db.Timestamptz(0)
+  updatedAt    DateTime   @updatedAt @db.Timestamptz(0)
+  userFood     UserFood[]
+
+  @@map("foods")
+}
+
+model UserFood {
+  userFoodId String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [userId])
+  food       Foods    @relation(fields: [foodExpId], references: [foodExpId])
+  userId     String
+  foodExpId  String
+  createdAt  DateTime @default(now()) @db.Timestamptz(0)
+
+  @@map("user_foods")
+}
+
+model StationaryItemList {
+  stationaryListId String          @id @default(uuid())
+  purchaseDate     DateTime        @db.Timestamptz(0)
+  purchaseQuantity Int
+  stationaryItemId String
+  stationaryItem   StationaryItem? @relation(fields: [stationaryItemId], references: [stationaryItemId])
+  createdAt        DateTime        @default(now()) @db.Timestamptz(0)
+  updatedAt        DateTime        @updatedAt @db.Timestamptz(0)
+
+  @@map("stationary_list")
+}
+
+model StationaryItemAssign {
+  assignId         String         @id @default(uuid())
+  lastAssignedDate DateTime       @db.Timestamptz(0)
+  assignItemStatus assignStatus   @default(Pending)
+  assignQuantity   Int
+  userId           String
+  user             User           @relation(fields: [userId], references: [userId])
+  stationaryItemId String
+  stationaryItem   StationaryItem @relation(fields: [stationaryItemId], references: [stationaryItemId])
+  createdAt        DateTime       @default(now()) @db.Timestamptz(0)
+  updatedAt        DateTime       @updatedAt @db.Timestamptz(0)
+}
+
+model StationaryItem {
+  stationaryItemId     String                 @id @default(uuid())
+  itemName             String                 @unique
+  stockQuantity        Int
+  stockItemStatus      itemStatus?
+  createdAt            DateTime               @default(now()) @db.Timestamptz(0)
+  updatedAt            DateTime               @updatedAt @db.Timestamptz(0)
+  stationaryItemList   StationaryItemList[]
+  stationaryItemAssign StationaryItemAssign[]
+
+  @@map("stationary_item")
+}
+
+model AssetItemList {
+  assetListId   String        @id @default(uuid())
+  assetName     String
+  assetModel    String
+  assetQuantity Int
+  assetLocation String
+  assetCategory String
+  assetImage    String
+  purchaseDate  DateTime      @db.Timestamptz(0)
+  assetId       String        @unique
+  createdAt     DateTime      @default(now()) @db.Timestamptz(0)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(0)
+  AssetAssign   AssetAssign[]
+
+  @@map("asset_list")
+}
+
+model AssetAssign {
+  assetAssignId String        @id @default(uuid())
+  assetListId   String
+  assetItemList AssetItemList @relation(fields: [assetListId], references: [assetListId])
+  assignDate    DateTime?     @db.Timestamptz(0)
+  userId        String
+  user          User          @relation(fields: [userId], references: [userId])
+  assignStatus  assignStatus  @default(Pending)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(0)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(0)
+  requestFor    requestFor
+  note          String
+}
+
+
+
+model MobileBalanceLimit {
+  mobileLimitId String       @id @default(uuid())
+  billLimit     Int
+  limitStatus   assignStatus @default(Pending)
+  userId        String
+  user          User         @relation(fields: [userId], references: [userId])
+  createdAt     DateTime     @default(now()) @db.Timestamptz(0)
+  updatedAt     DateTime     @updatedAt @db.Timestamptz(0)
+}
+
+enum requestFor {
+  Assign
+  Servicing
+}
+
+enum isMeal {
+  Yes
+  No
+}
+
+enum itemStatus {
+  Excellent
+  Good
+  Poor
+}
+
+enum assignStatus {
+  Pending
+  Approval
+  Rejected
+}
+
+enum docStatus {
+  Expired
+  Valid
+}

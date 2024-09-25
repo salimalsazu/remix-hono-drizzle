@@ -1,21 +1,32 @@
-# Dockerfile - Server
+# Use an official Node.js runtime as a parent image
+FROM node:20.11.1-alpine3.19
 
-FROM node:18
-
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy dependency definitions
+COPY package.json yarn.lock ./
+
+# Copy Prisma directory
+COPY prisma ./prisma/
+
+# Copy environment variables
+COPY .env ./
+
+# Copy TypeScript config
+COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm install
+RUN yarn install
 
-# Copy the rest of the server files
+# Copy the entire project
 COPY . .
 
-# Expose port
-EXPOSE 5000
+# Expose port 7000
+EXPOSE 7000
 
-# Command to run the server
-CMD ["npm", "start"]
+# Build the project
+RUN yarn build
+
+# Run Prisma migrations
+CMD yarn startmigrate
