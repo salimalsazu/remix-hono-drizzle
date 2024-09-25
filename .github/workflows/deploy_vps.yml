@@ -2,7 +2,7 @@ name: Deploy Docker Image
 
 on:
   workflow_run:
-    workflows: ["Publish Docker Image"] # Ensure this matches exactly with the docker_build.yml's 'name'
+    workflows: ["Publish Docker Image"]  # Ensure this matches exactly with the docker_build.yml's 'name'
     types: [completed]
 
 jobs:
@@ -10,6 +10,19 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      # Step to ensure Postgres container is running
+      - name: Ensure Postgres is running
+        run: |
+          if [ $(docker ps -q -f name=postgres) ]; then
+            echo "Postgres is already running";
+          elif [ $(docker ps -a -q -f name=postgres) ]; then
+            echo "Postgres container exists but is stopped, starting it";
+            docker start postgres;
+          else
+            echo "Postgres container does not exist, creating and starting it";
+            docker run -d --name postgres -e POSTGRES_PASSWORD=salimalsazu -e POSTGRES_DB=erp -p 5432:5432 postgres:latest;
+          fi
+
       # Deploy the Client
       - name: Stop the old client container
         run: docker stop client-container || true
@@ -57,12 +70,3 @@ jobs:
 
       - name: Run the new backup service container
         run: docker run -d --name backup-service --link postgres:postgres ${{ secrets.DOCKERHUB_USERNAME }}/erp-backup-service:latest
-
-      # Ensure Postgres is running (optional)
-      - name: Ensure Postgres is running
-        run: |
-          if [ $(docker ps -q -f name=postgres) ]; then
-            echo "Postgres is already running";
-          else
-            docker run -d --name postgres -e POSTGRES_PASSWORD=salimalsazu -e POSTGRES_DB=erp -p 5432:5432 postgres:latest;
-          fi
